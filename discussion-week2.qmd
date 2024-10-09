@@ -1,0 +1,78 @@
+---
+title: "discussion-week2"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# Load Packages
+library(here)
+library(tidyverse)
+library(sf)
+library(tmap)
+```
+
+```{r}
+# Read in data
+
+col <- st_read(here::here("data", "Colombia", "Colombia.shp"))
+
+obs <- read_csv(here::here("data", "dataves.csv"))
+
+roads <- st_read(here::here("data", "RDLINE_colombia", "RDLINE_colombia.shp"))
+```
+
+```{r}
+obs <- read_csv(here::here("data", "dataves.csv")) %>%
+  as_tibble() %>%
+  rename(long = decimal_longitude) %>%
+  rename( lat = decimal_latitude)
+```
+
+```{r}
+obs <- obs %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+```
+
+```{r}
+col_andean <- col %>%
+  mutate(N1_MacroBi = as.factor(N1_MacroBi)) %>%
+  filter(N1_MacroBi == "Andean")
+```
+
+```{r}
+tm_shape(col_andean)+
+  tm_polygons() +
+  tm_layout(main.title = "Andean region of Colombia")
+```
+
+```{r}
+# Check the coordinate system 
+# to add units, add $ units
+
+st_crs(col)$units
+```
+
+```{r}
+# Let's check if it matches:
+
+st_crs(col) == st_crs(roads)
+```
+
+```{r}
+st_crs(col) == st_crs(obs)
+# cannot plot
+```
+
+```{r}
+# transforms observations into the crs that is currently set for colombia 
+
+aves <- st_transform(obs, crs = st_crs(col))
+```
+
+```{r}
+st_crs(col) == st_crs(aves)
+```
+
